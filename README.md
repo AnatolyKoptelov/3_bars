@@ -2,15 +2,20 @@
 
 This application helps for find a Moscow bar by your requirement parameters.
 Bars were loaded from [Moscow OpenData Portal](https://apidata.mos.ru)
+
 Fortunately, the Internet connection is not required for application work. 
 With this application you can use downloaded file with data of bars **bars.json**
 Here is the 2.2 version, but you can update your file to actual version from
 [Moscow OpenData Portal](https://apidata.mos.ru) if you have a Moscow api data key using updater **update_bars_data.py \<key\>**
 Of course, you need an Internet connection for updating data file.
+
 Application can help you to find the biggest or the smallest bar in Moscow or the closest bar by your actual location.
 It prints a name, an address and a capacity of bars.
+
 You can use optional parameter **-b** for finding the biggest bar
+
 You can use optional parameter **-s** for finding the smallest bar
+
 You can use optional parameter **-c -lat \<latitude\> -lon \<longitude\>** for finding the closest bar
 
 # Quickstart
