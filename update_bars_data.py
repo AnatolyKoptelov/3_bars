@@ -54,7 +54,8 @@ def save_to_file(recording_data, path):
         json.dump(
             recording_data,
             file_to_write,
-            ensure_ascii=False)
+            ensure_ascii=False,
+        )
 
 
 if __name__ == '__main__':
@@ -72,11 +73,9 @@ if __name__ == '__main__':
             'is not confirmed. \nCheck this value in your account page:',
             'https://apidata.mos.ru/Account/Manage',
         ))
-    try:
-        local_data = load_json(load_data(filepath))
-        local_version = get_local_version(local_data)
-    except (json.decoder.JSONDecodeError, TypeError):
-        local_version = None
+    local_json = load_data(filepath)
+    local_data = local_json and load_json(local_json) or None
+    local_version = local_data and get_local_version(local_data) or None
     if actual_version != local_version:
         actual_data = get_actual_data(
             key=args.key,
