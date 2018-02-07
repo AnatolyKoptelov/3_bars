@@ -5,8 +5,8 @@ import argparse
 from bars import load_data, load_json
 
 
-def fetch_web_url(url):
-    response = requests.get(url)
+def fetch_web_url(url, get_params):
+    response = requests.get(url, params=get_params)
     if response.ok:
         return response.content
 
@@ -27,11 +27,9 @@ def get_args():
 
 
 def get_actual_version(key, fetch_function, load_data_function):
-    url = '{}{}'.format(
-        'https://apidata.mos.ru/v1/datasets/1796/version?api_key=',
-        key,
-    )
-    version_data = load_data_function(fetch_function(url))
+    url = 'https://apidata.mos.ru/v1/datasets/1796/version'
+    get_params = {'api_key': key}
+    version_data = load_data_function(fetch_function(url, get_params))
     return '{}.{}'.format(
         version_data['versionNumber'],
         version_data['releaseNumber'],
@@ -39,11 +37,9 @@ def get_actual_version(key, fetch_function, load_data_function):
 
 
 def get_actual_data(key, fetch_function, load_data_function):
-    url = '{}{}'.format(
-        'https://apidata.mos.ru/v1/features/1796/?api_key=',
-        key,
-    )
-    return load_data_function(fetch_function(url))
+    url = 'https://apidata.mos.ru/v1/features/1796/'
+    get_params = {'api_key': key}
+    return load_data_function(fetch_function(url, get_params))
 
 
 def get_local_version(local_data):

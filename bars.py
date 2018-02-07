@@ -65,25 +65,21 @@ def load_json(json_file):
     return json.loads(json_file, encoding='utf-8')
 
 
-def get_biggest_bar(data):
+def get_biggest_bar(bars_data):
     return {
-        'The biggest bar': sorted(
-            [
-                bar for bar in data['features']
-            ],
+        'The biggest bar': max(
+            bars_data['features'],
             key=lambda bar: bar['properties']['Attributes']['SeatsCount'],
-        )[-1],
+        ),
     }
 
 
-def get_smallest_bar(data):
+def get_smallest_bar(bars_data):
     return {
-        'The smallest bar': sorted(
-            [
-                bar for bar in data['features']
-            ],
+        'The smallest bar': min(
+            bars_data['features'],
             key=lambda bar: bar['properties']['Attributes']['SeatsCount'],
-        )[0],
+        ),
     }
 
 
@@ -95,33 +91,30 @@ def get_distance(latitude, longitude, actual_latitude, actual_longitude):
 
 
 def get_closest_bar(*args):
-    data, latitude, longitude, get_distance_function = args[0]
+    bars_data, latitude, longitude, get_distance_function = args[0]
     return {
-        'The closest bar': sorted(
-            [
-                bar for bar in data['features']
-            ],
+        'The closest bar': min(
+            bars_data['features'],
             key=lambda bar: get_distance_function(
                 latitude=bar['geometry']['coordinates'][0],
                 longitude=bar['geometry']['coordinates'][1],
                 actual_latitude=latitude,
                 actual_longitude=longitude,
             )
-        )[0],
-
+        ),
     }
 
 
-def bar_for_print(data):
+def bar_for_print(bar_data):
     return ['{}:\n\t{}\t{}\n\t{}\t{}\n\t{}\t{}'.format(
         title,
         'Bar Name: ',
-        bar_data['properties']['Attributes']['Name'],
+        bar['properties']['Attributes']['Name'],
         'Address:',
-        bar_data['properties']['Attributes']['Address'],
+        bar['properties']['Attributes']['Address'],
         'SeatsCount: ',
-        bar_data['properties']['Attributes']['SeatsCount'],
-    ) for title, bar_data in data.items()][0]
+        bar['properties']['Attributes']['SeatsCount'],
+    ) for title, bar in bar_data.items()][0]
 
 
 if __name__ == '__main__':
@@ -142,8 +135,7 @@ if __name__ == '__main__':
              )),
         ]
         for option, function, arguments in attributes:
-            if option:
-                print(bar_for_print(function(arguments)))
+            print(option and bar_for_print(function(arguments)) or '')
     except (json.decoder.JSONDecodeError, TypeError):
         print('{}{}{}'.format(
             'Cannot open the file: ',
