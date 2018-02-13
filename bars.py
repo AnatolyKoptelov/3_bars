@@ -1,19 +1,19 @@
-import os
 import sys
 import json
 import argparse
-
-
-def load_data(filepath):
-    if os.path.isfile(filepath):
-        with open(filepath, 'rb') as file_to_read:
-            return file_to_read.read()
+from geopy.distance import vincenty
 
 
 def get_args():
     parser = argparse.ArgumentParser(
         description='Bars information'
     )
+    parser.add_argument(
+        'path',
+        metavar='path',
+        type=argparse.FileType('rb'),
+        help='Path of file with data',
+    ),
     parser.add_argument(
         '-b',
         '--big',
@@ -48,56 +48,44 @@ def get_args():
         help='{}{}'.format(
             'Type your actual longitude in DD.DDDDD ',
             'format for getting the closest bar',
-        )
+        ),
     )
-    args = parser.parse_args()
-    if len(sys.argv) == 1:
-        parser.error('Enter any option parameter for view bar info ')
-    if args.close and (args.latitude is None or args.longitude is None):
-        parser.error('{}{}'.format(
-            'For getting the closest bar ',
-            'latitude and longitude options are required',
-        ))
     return parser.parse_args()
 
 
-def load_json(json_file):
-    return json.loads(json_file, encoding='utf-8')
-
-
-def get_biggest_bar(bars_data):
+def get_biggest_bar_data(bars_data):
     return {
         'The biggest bar': max(
-            bars_data['features'],
-            key=lambda bar: bar['properties']['Attributes']['SeatsCount'],
+            bars_data,
+            key=lambda bar: bar['SeatsCount'],
         ),
     }
 
 
-def get_smallest_bar(bars_data):
+def get_smallest_bar_data(bars_data):
     return {
         'The smallest bar': min(
-            bars_data['features'],
-            key=lambda bar: bar['properties']['Attributes']['SeatsCount'],
+            bars_data,
+            key=lambda bar: bar['SeatsCount'],
         ),
     }
 
 
 def get_distance(latitude, longitude, actual_latitude, actual_longitude):
-    return pow(
-        pow(latitude-actual_latitude, 2) + pow(longitude-actual_longitude, 2),
-        0.5,
-    )
+    return vincenty(
+        (latitude, longitude),
+        (actual_latitude, actual_longitude),
+    ).km
 
 
-def get_closest_bar(*args):
+def get_closest_bar_data(*args):
     bars_data, latitude, longitude, get_distance_function = args[0]
     return {
         'The closest bar': min(
-            bars_data['features'],
+            bars_data,
             key=lambda bar: get_distance_function(
-                latitude=bar['geometry']['coordinates'][0],
-                longitude=bar['geometry']['coordinates'][1],
+                latitude=bar['Latitude_WGS84'],
+                longitude=bar['Longitude_WGS84'],
                 actual_latitude=latitude,
                 actual_longitude=longitude,
             )
@@ -109,24 +97,33 @@ def bar_for_print(bar_data):
     return ['{}:\n\t{}\t{}\n\t{}\t{}\n\t{}\t{}'.format(
         title,
         'Bar Name: ',
-        bar['properties']['Attributes']['Name'],
+        bar['Name'],
         'Address:',
-        bar['properties']['Attributes']['Address'],
+        bar['Address'],
         'SeatsCount: ',
-        bar['properties']['Attributes']['SeatsCount'],
+        bar['SeatsCount'],
     ) for title, bar in bar_data.items()][0]
 
 
 if __name__ == '__main__':
     args = get_args()
-    filepath = './bars.json'
+    if len(sys.argv) == 2:
+        sys.exit('Enter any optional parameter for view bar info ')
+    if args.close and (args.latitude is None or args.longitude is None):
+        sys.exit('{}{}'.format(
+            'For getting the closest bar ',
+            'latitude and longitude options are required',
+        ))
     try:
-        bars_data = load_json(load_data(filepath))
+        bars_data = json.loads(
+            args.path.read().decode('cp1251'),
+            encoding='utf-8',
+        )
         attributes = [
-            (args.big, get_biggest_bar, bars_data),
-            (args.small, get_smallest_bar, bars_data),
+            (args.big, get_biggest_bar_data, bars_data),
+            (args.small, get_smallest_bar_data, bars_data),
             (args.close,
-             get_closest_bar,
+             get_closest_bar_data,
              (
                 bars_data,
                 args.latitude,
@@ -135,10 +132,12 @@ if __name__ == '__main__':
              )),
         ]
         for option, function, arguments in attributes:
-            print(option and bar_for_print(function(arguments)) or '')
+            if option:
+                print(bar_for_print(function(arguments)))
     except (json.decoder.JSONDecodeError, TypeError):
-        print('{}{}{}'.format(
+        print('{}{}\n{}{}'.format(
             'Cannot open the file: ',
-            filepath,
-            ' You can get actual version with update_bars_data.py',
+            args.path.name,
+            'Download actual version from: ',
+            'https://data.mos.ru/opendata/7710881420-bary',
         ))
