@@ -105,8 +105,7 @@ def bar_for_print(bar_data):
     ) for title, bar in bar_data.items()][0]
 
 
-if __name__ == '__main__':
-    args = get_args()
+def check_args(args):
     if len(sys.argv) == 2:
         sys.exit('Enter any optional parameter for view bar info ')
     if args.close and (args.latitude is None or args.longitude is None):
@@ -114,6 +113,11 @@ if __name__ == '__main__':
             'For getting the closest bar ',
             'latitude and longitude options are required',
         ))
+
+
+if __name__ == '__main__':
+    args = get_args()
+    check_args(args)
     try:
         bars_data = json.loads(
             args.path.read().decode('cp1251'),
@@ -132,7 +136,8 @@ if __name__ == '__main__':
              )),
         ]
         for option, function, arguments in attributes:
-            print(bar_for_print(function(arguments)) if option else '')
+            if option:
+                print(bar_for_print(function(arguments)))
     except (json.decoder.JSONDecodeError, TypeError):
         print('{}{}\n{}{}'.format(
             'Cannot open the file: ',
