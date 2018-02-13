@@ -132,8 +132,7 @@ if __name__ == '__main__':
              )),
         ]
         for option, function, arguments in attributes:
-            if option:
-                print(bar_for_print(function(arguments)))
+            print(bar_for_print(function(arguments)) if option else '')
     except (json.decoder.JSONDecodeError, TypeError):
         print('{}{}\n{}{}'.format(
             'Cannot open the file: ',
