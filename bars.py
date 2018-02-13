@@ -105,27 +105,31 @@ def bar_for_print(bar_data):
     ) for title, bar in bar_data.items()][0]
 
 
-def check_args(args):
-    if len(sys.argv) == 2:
-        sys.exit('Enter any optional parameter for view bar info ')
-    if args.close and (args.latitude is None or args.longitude is None):
-        sys.exit('{}{}'.format(
-            'For getting the closest bar ',
-            'latitude and longitude options are required',
-        ))
-
-
 if __name__ == '__main__':
     args = get_args()
-    check_args(args)
     try:
         bars_data = json.loads(
             args.path.read().decode('cp1251'),
             encoding='utf-8',
         )
         attributes = [
+            (
+                len(sys.argv) == 2,
+                sys.exit,
+                'Enter any optional parameter for view bar info '
+            ),
             (args.big, get_biggest_bar_data, bars_data),
             (args.small, get_smallest_bar_data, bars_data),
+            (
+                args.close and (
+                    args.latitude is None or args.longitude is None
+                ),
+                sys.exit,
+                '{}{}'.format(
+                    'For getting the closest bar ',
+                    'latitude and longitude options are required',
+                ),
+            ),
             (args.close,
              get_closest_bar_data,
              (
