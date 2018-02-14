@@ -123,11 +123,11 @@ if __name__ == '__main__':
         ),
     )
     try:
-        bars_data = json.loads(
-            args.path.read().decode('cp1251'),
-            encoding='utf-8',
-        )
-
+        with args.path as file_to_read:
+            bars_data = json.loads(
+                file_to_read.read().decode('cp1251'),
+                encoding='utf-8',
+            )
         attributes = [
             nothing_to_do,
             (args.big, get_biggest_bar_data, bars_data),
@@ -145,7 +145,7 @@ if __name__ == '__main__':
         for option, function, arguments in attributes:
             if option:
                 print(bar_for_print(function(arguments)))
-    except (json.decoder.JSONDecodeError, TypeError):
+    except (json.decoder.JSONDecodeError, UnicodeDecodeError):
         print('{}{}\n{}{}'.format(
             'Cannot open the file: ',
             args.path.name,
